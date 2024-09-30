@@ -2131,7 +2131,8 @@ from entering a malformed text input.
 PRESENTATION is used if COMPLETION yields something other than strings.
 
 Pressing <Tab> will replace the input field with the top completion,
-as you might expect in an IDE.
+as you might expect in an IDE.  Clicking an item will also put it in
+the input field.
 
 Pressing <Escape> will cancel the prompt."
   (let* ((sem (when time-out (bt2:make-semaphore)))

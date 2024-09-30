@@ -86,31 +86,31 @@
 (defun on-file-pop-tab (obj)
   (let ((pop (open-clog-popup obj)))
     (cond (pop ; pop is the body of the new browser tab/window
-            (clog-gui-initialize pop)
-            (add-class pop "w3-cyan")
-            (create-div pop :content "I am a popup browser tab"))
+           (clog-gui-initialize pop)
+           (add-class pop "w3-cyan")
+           (create-div pop :content "I am a popup browser tab"))
           (t
-            (alert-toast obj "Popup failure" "Unable to open popup tab")))))
+           (alert-toast obj "Popup failure" "Unable to open popup tab")))))
 
 (defun on-file-pop-win (obj)
   (let ((pop (open-clog-popup obj :specs "width=320,height=320")))
     (cond (pop ; pop is the body of the new browser tab/window
-            (clog-gui-initialize pop )
-            (add-class pop "w3-cyan")
-            (create-div pop :content "I am a popup window when the browser allows it otherwise a tab"))
+           (clog-gui-initialize pop )
+           (add-class pop "w3-cyan")
+           (create-div pop :content "I am a popup window when the browser allows it otherwise a tab"))
           (t
-            (alert-toast obj "Popup failure" "Unable to open popup tab")))))
+           (alert-toast obj "Popup failure" "Unable to open popup tab")))))
 
 (defun on-dlg-alert (obj)
   (alert-dialog obj "This is a modal alert box"))
 
 (defun on-dlg-confirm (obj)
   (confirm-dialog obj "Shall we play a game?"
-                (lambda (input)
-                  (if input
-                      (alert-dialog obj "How about Global Thermonuclear War.")
-                      (alert-dialog obj "You are no fun!")))
-                :ok-text "Yes" :cancel-text "No"))
+                  (lambda (input)
+                    (if input
+                        (alert-dialog obj "How about Global Thermonuclear War.")
+                        (alert-dialog obj "You are no fun!")))
+                  :ok-text "Yes" :cancel-text "No"))
 
 (defun on-dlg-input (obj)
   (input-dialog obj "Would you like to play a game?"
@@ -141,6 +141,18 @@
                (lambda (results)
                  (alert-dialog obj results))
                :height 550))
+
+(defun on-dlg-prompt (obj)
+  (prompt-dialog obj (lambda (result)
+                       (alert-dialog obj result))
+                 :title "Example Prompt:"
+                 :completion (lambda (str)
+                               (remove-if-not
+                                (alexandria:curry #'search str)
+                                '("Blue"
+                                  "Brown"
+                                  "Green"
+                                  "Other")))))
 
 (defun on-toast-alert (obj)
   (alert-toast obj "Stop!" "To get rid of me, click the X. I have no time-out"))
@@ -208,6 +220,7 @@
          (tmp   (create-gui-menu-item dlg :content "Alert Dialog Box" :on-click 'on-dlg-alert))
          (tmp   (create-gui-menu-item dlg :content "Input Dialog Box" :on-click 'on-dlg-input))
          (tmp   (create-gui-menu-item dlg :content "Confirm Dialog Box" :on-click 'on-dlg-confirm))
+         (tmp   (create-gui-menu-item dlg :content "Prompt Dialog Box" :on-click 'on-dlg-prompt))
          (tmp   (create-gui-menu-item dlg :content "Form Dialog Box" :on-click 'on-dlg-form))
          (tmp   (create-gui-menu-item dlg :content "Server File Dialog Box" :on-click 'on-dlg-file))
          (tst   (create-gui-menu-drop-down menu :content "Toasts"))

@@ -14,7 +14,7 @@
 ;;;  jquery-ui-css options.
 
 (mgl-pax:define-package :clog-gui
-  (:documentation "CLOG-GUI a desktop GUI abstraction for CLOG")
+    (:documentation "CLOG-GUI a desktop GUI abstraction for CLOG")
   (:use #:cl #:clog #:mgl-pax))
 
 (cl:in-package :clog-gui)
@@ -88,6 +88,7 @@
   (alert-dialog       function)
   (input-dialog       function)
   (confirm-dialog     function)
+  (prompt-dialog      function)
   (form-dialog        function)
   (server-file-dialog function)
 
@@ -119,7 +120,7 @@
 
 ;; CLOG GUI based ebugger settings
 (defparameter *clog-debug-instance* nil
-              "Default location to open debugger windows")
+  "Default location to open debugger windows")
 (defvar *probe* nil "Result value of a probe")
 
 ;; Menus
@@ -228,8 +229,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmacro with-clog-debugger ((clog-obj &key title
-                                             standard-output
-                                             standard-input)
+                                          standard-output
+                                          standard-input)
                               &body body)
   "body uses a clog-gui based debugger instead of the console"
   `(with-open-stream (out-stream (make-instance 'dialog-out-stream))
@@ -245,7 +246,7 @@
                           (let ((*debugger-hook* encapsulation))
                             (invoke-restart-interactively restart))))
                     (end-of-file () ; no reset chosen
-                                 nil))))
+                      nil))))
          (let* ((*standard-output* (or ,standard-output
                                        *standard-output*))
                 (*standard-input* (or ,standard-input
@@ -273,7 +274,7 @@ confirm continue execution on current thread or (break)."
       (confirm-dialog clog-body
                       (format nil "Continue thread ~A ?"
                               (bordeaux-threads:thread-name
-                                (bordeaux-threads:current-thread)))
+                               (bordeaux-threads:current-thread)))
                       (lambda (result)
                         (unless result
                           (break)))
@@ -287,13 +288,13 @@ confirm continue execution on current thread or (break)."
 ;;;;;;;;;;;;;;;;
 
 (defmacro clog-probe (symbol &key clog-body
-                                  (title "")
-                                  (time-out 600)
-                                  top left
-                                  (width 400) (height 300)
-                                  auto-probe
-                                  save-value
-                                  (modal t))
+                               (title "")
+                               (time-out 600)
+                               top left
+                               (width 400) (height 300)
+                               auto-probe
+                               save-value
+                               (modal t))
   "Pause thread of execution for time-out numnber of seconds or nil to not
 block execution, display symbol's value, value is changed if OK pressed at
 the moment pressed. When time-out is nil, :q quits the probe and cancel
@@ -305,7 +306,7 @@ symbol before any change is made by dialog."
   `(let ((body (or ,clog-body
                    *clog-debug-instance*))
          (title (if (equal ,title "")
-                    (format nil "~s" ',symbol) 
+                    (format nil "~s" ',symbol)
                     ,title)))
      (when (validp body)
        (if (and ,time-out (not ,auto-probe))
@@ -316,7 +317,7 @@ symbol before any change is made by dialog."
              (input-dialog body
                            (format nil "Probe in thread ~A :<br><code>~A</code> New Value?"
                                    (bordeaux-threads:thread-name
-                                     (bordeaux-threads:current-thread))
+                                    (bordeaux-threads:current-thread))
                                    value)
                            (lambda (result)
                              (when (and result
@@ -329,30 +330,30 @@ symbol before any change is made by dialog."
                            :modal ,modal
                            :title (format nil "clog-probe ~A" title)))
            (bordeaux-threads:make-thread
-             (lambda ()
-               (loop
-                 (let* ((ovalue ,symbol)
-                        (value (escape-for-html ovalue)))
-                   (when (eq (input-dialog body
-                                           (format nil "Probe result <code>~A</code> - New Value or :q to quit?"
-                                                   value)
-                                           (lambda (result)
-                                             (when (and result
-                                                        (not (equalp result "")))
-                                               (if (equalp result ":q")
-                                                   :q
-                                                   (setf ,symbol (eval (read-from-string result))))))
-                                           :time-out (or ,auto-probe 999)
-                                           :top ,top :left ,left
-                                           :width ,width
-                                           :height ,height
-                                           :modal nil
-                                           :title (format nil "clog-probe ~A" title))
-                             :q)
-                     (when ,save-value
-                       (setf clog-gui:*probe* ovalue))
-                     (return)))))
-             :name (format nil "clog-probe ~A" title))))))
+            (lambda ()
+              (loop
+                (let* ((ovalue ,symbol)
+                       (value (escape-for-html ovalue)))
+                  (when (eq (input-dialog body
+                                          (format nil "Probe result <code>~A</code> - New Value or :q to quit?"
+                                                  value)
+                                          (lambda (result)
+                                            (when (and result
+                                                       (not (equalp result "")))
+                                              (if (equalp result ":q")
+                                                  :q
+                                                  (setf ,symbol (eval (read-from-string result))))))
+                                          :time-out (or ,auto-probe 999)
+                                          :top ,top :left ,left
+                                          :width ,width
+                                          :height ,height
+                                          :modal nil
+                                          :title (format nil "clog-probe ~A" title))
+                            :q)
+                    (when ,save-value
+                      (setf clog-gui:*probe* ovalue))
+                    (return)))))
+            :name (format nil "clog-probe ~A" title))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; clog-gui-initialize ;;
@@ -382,11 +383,11 @@ to it.
 NOTE: use-clog-debugger should not be set for security issues
       on non-secure environments."
   (if parent-desktop-obj
-    (let ((app (connection-data-item parent-desktop-obj "clog-gui")))
-      (setf (connection-data-item clog-body "clog-gui") app))
-    (let ((app (create-clog-gui clog-body)))
-      (setf (body-left-offset app) body-left-offset)
-      (setf (body-right-offset app) body-right-offset)))
+      (let ((app (connection-data-item parent-desktop-obj "clog-gui")))
+        (setf (connection-data-item clog-body "clog-gui") app))
+      (let ((app (create-clog-gui clog-body)))
+        (setf (body-left-offset app) body-left-offset)
+        (setf (body-right-offset app) body-right-offset)))
   (set-on-full-screen-change (html-document clog-body) 'reorient-all-windows)
   (set-on-orientation-change (window clog-body) 'reorient-all-windows)
   (set-on-resize (window clog-body) 'reorient-all-windows)
@@ -614,16 +615,16 @@ window or nil if not found"))
 (defun make-in-bounds (obj mbh bh bw)
   "Insure obj in bounds of gui (private)"
   (let* ((top-loc   (js-to-integer (top obj)))
-	 (left-loc  (js-to-integer (left obj)))
-	 (width-loc (width obj)))
+         (left-loc  (js-to-integer (left obj)))
+         (width-loc (width obj)))
     (if (< (+ left-loc width-loc) 25)
-	(setf (left obj) (unit :px (- 25 width-loc))))
+        (setf (left obj) (unit :px (- 25 width-loc))))
     (if (> left-loc bw)
-	(setf (left obj) (unit :px (- bw 15))))
+        (setf (left obj) (unit :px (- bw 15))))
     (if (< top-loc mbh)
-	(setf (top obj) (unit :px mbh)))
+        (setf (top obj) (unit :px mbh)))
     (if (>= top-loc bh)
-	(setf (top obj) (unit :px (- bh 15))))))
+        (setf (top obj) (unit :px (- bh 15))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; reorient-all-windows ;;
@@ -637,18 +638,18 @@ in on-resize, on-full-screen-change and on-orientation-change events."))
 (defmethod reorient-all-windows ((obj clog-obj))
   (window-clean-zombies obj)
   (let* ((app  (connection-data-item obj "clog-gui"))
-	 (body (connection-body obj))
-	 (mbh  (menu-bar-height obj))
-	 (bh   (height (html-document body)))
-	 (bw   (width  (html-document body)))
-	 (cur  (current-window obj)))
+         (body (connection-body obj))
+         (mbh  (menu-bar-height obj))
+         (bh   (height (html-document body)))
+         (bw   (width  (html-document body)))
+         (cur  (current-window obj)))
     (maphash (lambda (key value)
                (declare (ignore key))
                (when (window-valid-p value)
                  (cond ((window-maximized-p value)
                         (window-maximize value :focus nil))
-		       (t
-		        (make-in-bounds value mbh bh bw)))))
+                       (t
+                        (make-in-bounds value mbh bh bw)))))
              (windows app))
     (when cur
       (window-focus cur))))
@@ -674,7 +675,7 @@ clog-body. If main-menu add as main menu bar."))
     (declare (ignore blank))
     (change-class div 'clog-gui-menu-bar)
     (when main-menu
-        (setf (menu app) div))
+      (setf (menu app) div))
     div))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -689,10 +690,10 @@ clog-body. If main-menu add as main menu bar."))
   (:documentation "Attached a menu bar drop-down to a CLOG-GUI-MENU-BAR"))
 
 (defmethod create-gui-menu-drop-down ((obj clog-gui-menu-bar)
-                  &key (content "")
-                    (class *menu-bar-drop-down-class*)
-                    (right-align nil)
-                    (html-id nil))
+                                      &key (content "")
+                                        (class *menu-bar-drop-down-class*)
+                                        (right-align nil)
+                                        (html-id nil))
   (let* ((hover  (create-div obj :class (if right-align
                                             "w3-right w3-dropdown-hover"
                                             "w3-dropdown-hover")))
@@ -749,8 +750,8 @@ first menu-window-select will receive change window notices only."))
     (change-class window-select 'clog-gui-menu-window-select)
     (unless (window-select app)
       (setf (window-select app) window-select))
-    ; on mac on-click after a refill doesn't work
-    ; on pc mouse-enter fires as long as in the control, so..
+                                        ; on mac on-click after a refill doesn't work
+                                        ; on pc mouse-enter fires as long as in the control, so..
     (flet ((refill (obj)
              (set-on-mouse-enter obj nil)
              (with-sync-event (obj)
@@ -791,8 +792,8 @@ icon ⤢ (*menu-full-screen-item* default) and full screen mode."))
                               documentElement.requestFullscreen()
                             } else {document.exitFullscreen();}'>~A</span>"
                         *menu-full-screen-item*)
-          :html-id html-id
-          :clog-type 'clog-gui-menu-item))
+                :html-id html-id
+                :clog-type 'clog-gui-menu-item))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; create-gui-menu-icon ;;
@@ -892,8 +893,8 @@ The on-window-change clog-obj received is the new window"))
     :initform nil
     :documentation "Window pinner clog-element if created with has-pinner")
    (icon-area
-     :accessor icon-area
-     :documentation "Window icon area for adding icons to menu bar")
+    :accessor icon-area
+    :documentation "Window icon area for adding icons to menu bar")
    (closer
     :accessor closer
     :documentation "Window closer clog-element")
@@ -1002,32 +1003,32 @@ The on-window-change clog-obj received is the new window"))
               (setf (z-index (drag-obj app)) (incf (last-z app))))
             (setf (in-drag app) (attribute obj "data-drag-type"))
             (cond ((equalp (in-drag app) "m")
-                    (setf obj-top
-                          (js-to-integer (top (drag-obj app))))
-                    (setf obj-left
-                          (js-to-integer (left (drag-obj app))))
-                    (setf perform-drag (fire-on-window-can-move (drag-obj app))))
+                   (setf obj-top
+                         (js-to-integer (top (drag-obj app))))
+                   (setf obj-left
+                         (js-to-integer (left (drag-obj app))))
+                   (setf perform-drag (fire-on-window-can-move (drag-obj app))))
                   ((equalp (in-drag app) "s")
                    (setf obj-top  (height (drag-obj app)))
                    (setf obj-left (width (drag-obj app)))
                    (setf perform-drag (fire-on-window-can-size (drag-obj app))))
                   (t
-                    (format t "Warning - invalid data-drag-type attribute")))
+                   (format t "Warning - invalid data-drag-type attribute")))
             (fire-on-window-change (drag-obj app) app)
             (setf (drag-y app) (- pointer-y obj-top))
             (setf (drag-x app) (- pointer-x obj-left))
             (cond (perform-drag
-                    (set-on-pointer-move obj 'on-gui-drag-move)
-                    (set-on-pointer-cancel obj
-                      (lambda (obj data)
-                        (setf (getf data ':screen-x) pointer-x)
-                        (setf (getf data ':screen-y) pointer-y)
-                        (on-gui-drag-stop obj data)))
-                    (set-on-pointer-up obj 'on-gui-drag-stop))
+                   (set-on-pointer-move obj 'on-gui-drag-move)
+                   (set-on-pointer-cancel obj
+                                          (lambda (obj data)
+                                            (setf (getf data ':screen-x) pointer-x)
+                                            (setf (getf data ':screen-y) pointer-y)
+                                            (on-gui-drag-stop obj data)))
+                   (set-on-pointer-up obj 'on-gui-drag-stop))
                   (t
-                    (setf (in-drag app) nil)))))
+                   (setf (in-drag app) nil)))))
       (error ()
-             (setf (in-drag app) nil)))))
+        (setf (in-drag app) nil)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;
 ;; on-gui-drag-move ;;
@@ -1062,15 +1063,15 @@ The on-window-change clog-obj received is the new window"))
     (set-on-pointer-up obj nil)
     (when (drag-obj app)
       (cond ((window-maximized-p (drag-obj app))
-              (window-maximize (drag-obj app) :focus nil))
+             (window-maximize (drag-obj app) :focus nil))
             (t
-              (let* ((body      (connection-body (drag-obj app)))
-                     (mbh       (menu-bar-height (drag-obj app)))
-                     (bh        (height (html-document body)))
-                     (bw        (width  (html-document body))))
-                (make-in-bounds (drag-obj app) mbh bh bw))))
+             (let* ((body      (connection-body (drag-obj app)))
+                    (mbh       (menu-bar-height (drag-obj app)))
+                    (bh        (height (html-document body)))
+                    (bw        (width  (html-document body))))
+               (make-in-bounds (drag-obj app) mbh bh bw))))
       (cond ((equalp (in-drag app) "m")
-              (fire-on-window-move-done (drag-obj app)))
+             (fire-on-window-move-done (drag-obj app)))
             ((equalp (in-drag app) "s")
              (fire-on-window-size-done (drag-obj app)))))
     (setf (in-drag app) nil)
@@ -1153,7 +1154,7 @@ window-to-top-by-param or window-by-param."))
         (setf (last-y app) (menu-bar-height obj))))
     (let ((win (create-child body
                              (format nil
-            "<div style='position:fixed;top:~Apx;left:~Apx;width:~Apx;height:~Apx;
+                                     "<div style='position:fixed;top:~Apx;left:~Apx;width:~Apx;height:~Apx;
                   z-index:~A;visibility:hidden'
                   class='~A'>
                   <div id='~A-title-bar' class='w3-container ~A'
@@ -1171,25 +1172,25 @@ window-to-top-by-param or window-by-param."))
                        ~Aopacity:0'
                        class='w3-right' data-drag-obj='~A' data-drag-type='s'>+</div>
              </div>"
-            top left width height (incf (last-z app))   ; outer div
-            border-class
-            html-id title-class html-id html-id         ; title bar
-            title                                       ; title
-            html-id                                     ; icons area
-            html-id                                     ; closer
-            closer-html
-            html-id
-            (if drag-client-area
-                (format nil "data-drag-obj='~A' data-drag-type='m'" html-id)
-                "")
-            content                                     ; body
-            html-id                                     ; sizer
-            (if no-sizer
-                ""
-                "cursor:se-resize;")
-            html-id)
-                            :clog-type 'clog-gui-window
-                            :html-id html-id)))
+                                     top left width height (incf (last-z app))   ; outer div
+                                     border-class
+                                     html-id title-class html-id html-id         ; title bar
+                                     title                                       ; title
+                                     html-id                                     ; icons area
+                                     html-id                                     ; closer
+                                     closer-html
+                                     html-id
+                                     (if drag-client-area
+                                         (format nil "data-drag-obj='~A' data-drag-type='m'" html-id)
+                                         "")
+                                     content                                     ; body
+                                     html-id                                     ; sizer
+                                     (if no-sizer
+                                         ""
+                                         "cursor:se-resize;")
+                                     html-id)
+                             :clog-type 'clog-gui-window
+                             :html-id html-id)))
       (setf (win-title win)
             (attach-as-child win (format nil "~A-title" html-id)))
       (setf (win-param win) window-param)
@@ -1279,13 +1280,13 @@ window-to-top-by-param or window-by-param."))
                              (declare (ignore obj))
                              (fire-on-window-size-done win))))
             (t
-             (set-on-touch-start (win-title win) (lambda (obj data) 
-                                                   (declare (ignore obj data)) nil) 
+             (set-on-touch-start (win-title win) (lambda (obj data)
+                                                   (declare (ignore obj data)) nil)
                                  :cancel-event t)
              (set-on-pointer-down (win-title win) 'on-gui-drag-down :capture-pointer t)
              (if drag-client-area
                  (progn
-                   (set-on-touch-start (content win) (lambda (obj data) 
+                   (set-on-touch-start (content win) (lambda (obj data)
                                                        (declare (ignore obj data)) nil)
                                        :cancel-event t)
                    (set-on-pointer-down (content win) 'on-gui-drag-down :capture-pointer t)))
@@ -1399,7 +1400,7 @@ it is removed."
                     (gethash (html-id obj) (windows app)))))
         (when win
           (when (connection-data-item win "clog-gui")
-                obj))))))
+            obj))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;
 ;; window-maximized-p ;;
@@ -1424,10 +1425,10 @@ it is removed."
     (bordeaux-threads:with-lock-held ((window-size-mutex obj)) ; prevent race condition of maximize/normalize
       (let ((app (connection-data-item obj "clog-gui")))
         (when focus
-	  (unless (keep-on-top obj)
-	    (window-focus obj)))
+          (unless (keep-on-top obj)
+            (window-focus obj)))
         (when (fire-on-window-can-maximize obj)
-	  (unless (window-maximized-p obj)
+          (unless (window-maximized-p obj)
             (setf (last-x obj) (left obj))
             (setf (last-y obj) (top obj))
             (setf (last-height obj) (height obj))
@@ -1437,15 +1438,15 @@ it is removed."
                  (setf (height obj) (inner-height (window (connection-body obj)))))
                 (t
                  (setf (top obj) (unit :px (menu-bar-height obj)))
-	         (setf (height obj)
+                 (setf (height obj)
                        (- (inner-height (window (connection-body obj))) (menu-bar-height obj)))))
-	  (setf (left obj) (unit :px 0))
-	  (setf (width obj) (unit :vw 100))
-	  (setf (left obj) (unit :px (body-left-offset app)))
-	  (setf (width obj) (- (width obj)
+          (setf (left obj) (unit :px 0))
+          (setf (width obj) (unit :vw 100))
+          (setf (left obj) (unit :px (body-left-offset app)))
+          (setf (width obj) (- (width obj)
                                (body-left-offset app)
                                (body-right-offset app)))
-	  (fire-on-window-size-done obj))))))
+          (fire-on-window-size-done obj))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;
 ;; window-normalize ;;
@@ -1459,15 +1460,15 @@ it is removed."
   (bordeaux-threads:with-lock-held ((window-size-mutex obj)) ; prevent race condition of maximize/normalize
     (when focus
       (unless (keep-on-top obj)
-	(window-focus obj)))
+        (window-focus obj)))
     (when (fire-on-window-can-normalize obj)
       (when (window-maximized-p obj)
-	(setf (width obj) (last-width obj))
-	(setf (height obj) (last-height obj))
-	(setf (top obj) (last-y obj))
-	(setf (left obj) (last-x obj))
-	(setf (last-width obj) nil)
-	(fire-on-window-size-done obj)))))
+        (setf (width obj) (last-width obj))
+        (setf (height obj) (last-height obj))
+        (setf (top obj) (last-y obj))
+        (setf (left obj) (last-x obj))
+        (setf (last-width obj) nil)
+        (fire-on-window-size-done obj)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; window-toggle-maximize ;;
@@ -1565,7 +1566,7 @@ interactions. Use window-end-modal to undo."))
 (defmethod window-make-modal ((obj clog-gui-window))
   (let ((app (connection-data-item obj "clog-gui")))
     (when (and app
-	       (<= (modal-count app) 0))
+               (<= (modal-count app) 0))
       (setf (modal-background app) (create-div (connection-body obj) :class "w3-overlay"))
       (setf (display (modal-background app)) :block))
     (incf (modal-count app))
@@ -1820,22 +1821,22 @@ is placed in DOM at top of html body instead of bottom of html body. Note,
 when time-out alert-toast blocks and the toast is displayed for time-out or
 until user closes the toast."
   (unless html-id
-      (setf html-id (generate-id)))
+    (setf html-id (generate-id)))
   (let* ((sem    (when time-out (bordeaux-threads:make-semaphore)))
          (body   (connection-body obj))
          (win    (create-child body
-                             (format nil
-"  <div class='w3-panel ~A w3-animate-right w3-display-container'>~
+                               (format nil
+                                       "  <div class='w3-panel ~A w3-animate-right w3-display-container'>~
    <span id=~A-close class='w3-button w3-large w3-display-topright'>&times;</span>~
    <h3>~A</h3>~
    <p>~A</p>~
 </div>"
-                              color-class
-                              html-id
-                              title
-                              content)
-                             :html-id html-id
-                             :auto-place nil)))
+                                       color-class
+                                       html-id
+                                       title
+                                       content)
+                               :html-id html-id
+                               :auto-place nil)))
     (if place-top
         (place-inside-top-of body win)
         (place-inside-bottom-of body win))
@@ -1866,13 +1867,13 @@ until user closes the toast."
   "Create an alert dialog box with CONTENT centered. If time-out
 alert-dialog blocks till time-out reached or OK clicked."
   (unless html-id
-      (setf html-id (generate-id)))
+    (setf html-id (generate-id)))
   (let* ((sem  (when time-out (bordeaux-threads:make-semaphore)))
          (body (connection-body obj))
          (win  (create-gui-window obj
                                   :title    title
                                   :content  (format nil
-"<div class='w3-panel'>
+                                                    "<div class='w3-panel'>
 <center>~A<br><br>
 <button class='w3-button w3-black' id='~A-btn'>OK</button>
 </center>
@@ -1933,7 +1934,7 @@ Calls on-input with input box contents or nil if canceled. If time-out
 block time-out seconds for responce or cancels dialog box then returns
 result of on-input."
   (unless html-id
-      (setf html-id (generate-id)))
+    (setf html-id (generate-id)))
   (let* ((sem  (when time-out (bordeaux-threads:make-semaphore)))
          (result nil)
          (body (connection-body obj))
@@ -1954,7 +1955,7 @@ result of on-input."
          (win  (create-gui-window obj
                                   :title          title
                                   :content        (format nil
-"<div class='w3-panel'>
+                                                          "<div class='w3-panel'>
 <center>~A<br><br>
 <form class='w3-container' onSubmit='return false;'>
 ~A<br><br>
@@ -1963,10 +1964,10 @@ result of on-input."
 </form>
 </center>
 </div>"
-      content
-      inp
-      html-id  ; ok
-      html-id) ; cancel
+                                                          content
+                                                          inp
+                                                          html-id  ; ok
+                                                          html-id) ; cancel
                                   :top             top
                                   :left            left
                                   :width           width
@@ -2037,14 +2038,14 @@ result of on-input."
   "Create a confirmation dialog box with CONTENT centered.
 Calls on-input with t if confirmed or nil if canceled."
   (unless html-id
-      (setf html-id (generate-id)))
+    (setf html-id (generate-id)))
   (let* ((sem  (when time-out (bordeaux-threads:make-semaphore)))
          (result nil)
          (body (connection-body obj))
          (win  (create-gui-window obj
                                   :title          title
                                   :content        (format nil
-"<div class='w3-panel'>
+                                                          "<div class='w3-panel'>
 <center>~A<br><br>
 <form class='w3-container' onSubmit='return false;'>
 <button class='w3-button w3-black' style='width:7em' id='~A-ok'>~A</button>
@@ -2052,8 +2053,8 @@ Calls on-input with t if confirmed or nil if canceled."
 </form>
 </center>
 </div>" content
-        html-id ok-text      ; ok
-        html-id cancel-text) ; cancel
+                                                          html-id ok-text      ; ok
+                                                          html-id cancel-text) ; cancel
                                   :top             top
                                   :left            left
                                   :width           width
@@ -2099,6 +2100,109 @@ Calls on-input with t if confirmed or nil if canceled."
         (setf sem nil)
         (window-close win)))
     result))
+
+;;;;;;;;;;;;;;;;;;;
+;; prompt-dialog ;;
+;;;;;;;;;;;;;;;;;;;
+
+(defun prompt-dialog (obj callback
+                      &key
+                        (title "Prompt")
+                        (completion #'list)
+                        (validation (constantly t))
+                        (presentation (lambda (it) (format nil "~a" it)))
+                        (initial-value "")
+                        (modal t)
+                        time-out
+                        left top (width 390) (height 425)
+                        maximize
+                        client-movement
+                        html-id)
+  (let* ((sem (when time-out (bt2:make-semaphore)))
+         (result nil)
+         (body (connection-body obj))
+         (win (create-gui-window obj
+                                 :title title
+                                 :maximize maximize
+                                 :top top
+                                 :left left
+                                 :width width
+                                 :height height
+                                 :hidden t
+                                 :client-movement client-movement
+                                 :html-id html-id))
+         (form (create-form (window-content win)
+                            :style "width:100%"))
+         (input (create-form-element form :input
+                                     :style "width:80%"))
+         (ok (create-button form
+                            :content "Okay"
+                            :style "width:10%"
+                            :class "w3-button w3-black w3-margin"))
+         (cancel (create-button form
+                                :content "Cancel"
+                                :style "width:10%"
+                                :class "w3-button w3-black w3-margin"))
+         (items-list (create-unordered-list
+                      form
+                      :class "w3-ul w3-hoverable"))
+         (items '()))
+    (unless top
+      (setf (top win) (unit :px (- (/ (inner-height (window body)) 2.0)
+                                   (/ (height win) 2.0)))))
+    (unless left
+      (setf (left win) (unit :px (- (/ (inner-width (window body)) 2.0)
+                                    (/ (width win) 2.0)))))
+    (setf (overflow items-list) :auto)
+    (setf (visiblep win) t)
+    (setf (value input) initial-value)
+    (setf (attribute input "autocomplete") "off")
+    (when modal
+      (window-make-modal win))
+    (flet ((refresh-completions ()
+             (setf (inner-html items-list) "")
+             (dolist (it (funcall completion (value input)))
+               (setf items (append items (list it)))
+               (let ((li (create-list-item
+                          items-list
+                          :content (funcall presentation it))))
+                 (set-on-click li (lambda (obj)
+                                    (declare (ignore obj))
+                                    (setf (value input) it)
+                                    (focus input)))))
+             (focus input)))
+      (refresh-completions)
+      (set-on-window-close win (lambda (obj)
+                                 (declare (ignore obj))
+                                 (when modal
+                                   (window-end-modal win))
+                                 (when sem
+                                   (bt2:signal-semaphore sem))))
+      (set-on-click ok (lambda (obj)
+                         (declare (ignore obj))
+                         (when (funcall validation (value input))
+                           (when modal
+                             (window-end-modal win))
+                           (setf result (funcall callback (value input)))
+                           (window-close win)))
+                    :one-time t)
+      (set-on-click cancel (lambda (obj)
+                             (declare (ignore obj))
+                             (window-close win)))
+      (set-on-key-down input (lambda (obj ev)
+                               (declare (ignore obj))
+                               (let ((key (getf ev :key)))
+                                 (cond ((equal "Escape" key)
+                                        (window-close win))
+                                       ((equal "Tab" key)
+                                        (setf (value input) (car items))
+                                        )))
+                               (refresh-completions)))
+      (when sem
+        (unless (bt2:wait-on-semaphore sem :timeout time-out)
+          (setf sem nil)
+          (window-close win)))
+      result)))
 
 ;;;;;;;;;;;;;;;;;
 ;; form-dialog ;;
@@ -2521,7 +2625,7 @@ make-two-way-stream to provide a *query-io* using a clog-gui instead of console)
       (setf q (format nil "~A~&[~D] ~A~%<br>" q i (escape-for-html (car c)))))
     (do () ((typep i `(integer 1 ,n)))
       (let ((trc (make-array '(0) :element-type 'base-char
-                             :fill-pointer 0 :adjustable t)))
+                                  :fill-pointer 0 :adjustable t)))
         (with-output-to-string (s trc)
           (uiop:print-condition-backtrace intro :stream s))
         (when trc
@@ -2530,9 +2634,9 @@ make-two-way-stream to provide a *query-io* using a clog-gui instead of console)
       (setq i (read-from-string (input-dialog obj q (lambda (result)
                                                       (cond ((or (eq result nil)
                                                                  (equal result ""))
-                                                              (format nil "~A" n))
+                                                             (format nil "~A" n))
                                                             (t
-                                                              result)))
+                                                             result)))
                                               :title title
                                               :placeholder-value (format nil "~A" n)
                                               :time-out 999
